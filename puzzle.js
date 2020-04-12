@@ -5,26 +5,24 @@ const pixelmatch = require("pixelmatch");
 
 const Scraper = require("./scraper");
 
-const INITIAL_STATE_FILENAME = "initialState.png";
 const NUMBER_OF_PIECES = 9;
 
 class Puzzle {
   constructor() {
+    this.INITIAL_STATE_FILENAME = "initialState.png";
     this.finalPositions = {};
     this.currentOrder = [];
   }
 
   async init() {
-    await Scraper.saveShuffledPuzzle(INITIAL_STATE_FILENAME);
-
-    const metaReader = await sharp(INITIAL_STATE_FILENAME).metadata();
+    const metaReader = await sharp(this.INITIAL_STATE_FILENAME).metadata();
     const canvasSize = metaReader.width;
     this.pieceSize = canvasSize / 3;
   }
 
   async process() {
     this.loadFinalPositions();
-    await this.analyse(INITIAL_STATE_FILENAME);
+    return this.analyse(this.INITIAL_STATE_FILENAME);
   }
 
   loadFinalPositions() {
@@ -86,7 +84,7 @@ class Puzzle {
     }
 
     try {
-      const data = await sharp(INITIAL_STATE_FILENAME)
+      const data = await sharp(this.INITIAL_STATE_FILENAME)
         .extract({
           left,
           top,
@@ -137,17 +135,22 @@ class Puzzle {
 
     // Order items
     let slot = 0;
+    const movements = [];
+    let it = 0;
     while (slot < NUMBER_OF_PIECES) {
+      it++;
+
       const currentPiece = currentOrder[slot];
       if (currentPiece === slot) {
         slot++;
       } else {
-        console.log(`Move ${slot} to ${currentPiece}`);
+        movements.push([slot, currentPiece]);
         const temp = currentOrder[slot];
         currentOrder[slot] = currentOrder[currentPiece];
         currentOrder[currentPiece] = temp;
       }
     }
+    return movements;
   }
 }
 
