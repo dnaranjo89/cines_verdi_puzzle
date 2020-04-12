@@ -2,6 +2,7 @@ const puppeteer = require("puppeteer");
 const process = require("./image-matcher.js");
 const generatePieces = require("./image-cropper.js");
 const analyse = require("./image-analyser.js");
+const Puzzle = require("./puzzle.js");
 const Scraper = require("./scraper");
 
 /**
@@ -208,6 +209,13 @@ function processPuzzle() {
   analyse(shuffledPuzzleFileName);
 }
 
-processPuzzle();
+// processPuzzle();
 
+async function run() {
+  const puzzle = new Puzzle();
+  await puzzle.init();
+  puzzle.analyse();
+}
+
+run();
 // process();

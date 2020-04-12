@@ -1,6 +1,20 @@
 const sharp = require("sharp");
 const ImageMatcher = require("./image-matcher");
 
+async function readPosition(initialStateImage, position) {
+  const data = await sharp(initialStateImage, 1)
+    .extract({
+      left: padding,
+      top: padding,
+      width,
+      height,
+    })
+    .raw()
+    .toBuffer();
+
+  ImageMatcher.processImage(data);
+}
+
 async function analyse(initialStateImage) {
   const metaReader = await sharp(initialStateImage).metadata();
   const canvasSize = metaReader.width;
@@ -10,7 +24,7 @@ async function analyse(initialStateImage) {
   const width = pieceSize - padding;
   const height = width;
 
-  const data = sharp(initialStateImage)
+  const data = await sharp(initialStateImage, 1)
     .extract({
       left: padding,
       top: padding,
@@ -18,11 +32,9 @@ async function analyse(initialStateImage) {
       height,
     })
     .raw()
-    .toBuffer()
-    .then((data) => ImageMatcher.processImage(data))
-    .catch((err) => console.log(err));
+    .toBuffer();
 
-  // ImageMatcher.processImage(data);
+  ImageMatcher.processImage(data);
 
   // sharp(initialStateImage)
   //   .extract({
