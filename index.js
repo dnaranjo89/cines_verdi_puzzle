@@ -205,7 +205,7 @@ function generateInitialAssets() {
 
 function processPuzzle() {
   const shuffledPuzzleFileName = "initialState.png";
-  // Scraper.saveShuffledPuzzle(shuffledPuzzleFileName);
+  Scraper.saveShuffledPuzzle(shuffledPuzzleFileName);
   analyse(shuffledPuzzleFileName);
 }
 
@@ -214,7 +214,7 @@ function processPuzzle() {
 async function run() {
   const puzzle = new Puzzle();
   await puzzle.init();
-  puzzle.analyse();
+  await puzzle.process();
 }
 
 run();

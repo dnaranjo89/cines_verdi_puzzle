@@ -3,7 +3,7 @@ const fs = require("fs");
 const sharp = require("sharp");
 const pixelmatch = require("pixelmatch");
 
-const analyse = require("./image-analyser.js");
+const Scraper = require("./scraper");
 
 const INITIAL_STATE_FILENAME = "initialState.png";
 const NUMBER_OF_PIECES = 9;
@@ -15,11 +15,16 @@ class Puzzle {
   }
 
   async init() {
+    await Scraper.saveShuffledPuzzle(INITIAL_STATE_FILENAME);
+
     const metaReader = await sharp(INITIAL_STATE_FILENAME).metadata();
     const canvasSize = metaReader.width;
     this.pieceSize = canvasSize / 3;
+  }
 
+  async process() {
     this.loadFinalPositions();
+    await this.analyse(INITIAL_STATE_FILENAME);
   }
 
   loadFinalPositions() {
@@ -80,17 +85,20 @@ class Puzzle {
         throw "Unexpected position";
     }
 
-    const data = await sharp(INITIAL_STATE_FILENAME)
-      .extract({
-        left,
-        top,
-        width,
-        height,
-      })
-      .raw()
-      .toBuffer();
-
-    return this.findMatchingSlot(data);
+    try {
+      const data = await sharp(INITIAL_STATE_FILENAME)
+        .extract({
+          left,
+          top,
+          width,
+          height,
+        })
+        .raw()
+        .toBuffer();
+      return this.findMatchingSlot(data);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   findMatchingSlot(data) {
@@ -117,12 +125,6 @@ class Puzzle {
     }
   }
 
-  getInitialState() {
-    const shuffledPuzzleFileName = "initialState.png";
-    Scraper.saveShuffledPuzzle(shuffledPuzzleFileName);
-    analyse(shuffledPuzzleFileName);
-  }
-
   async analyse() {
     const slotPromises = [];
 
@@ -130,8 +132,22 @@ class Puzzle {
       slotPromises.push(this.processSlot(i));
     }
 
-    const result = await Promise.all(slotPromises);
-    console.log("result", result);
+    const currentOrder = await Promise.all(slotPromises);
+    console.log("initialOrder", currentOrder);
+
+    // Order items
+    let slot = 0;
+    while (slot < NUMBER_OF_PIECES) {
+      const currentPiece = currentOrder[slot];
+      if (currentPiece === slot) {
+        slot++;
+      } else {
+        console.log(`Move ${slot} to ${currentPiece}`);
+        const temp = currentOrder[slot];
+        currentOrder[slot] = currentOrder[currentPiece];
+        currentOrder[currentPiece] = temp;
+      }
+    }
   }
 }
 
